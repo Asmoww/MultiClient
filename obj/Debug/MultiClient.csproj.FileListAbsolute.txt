@@ -1,0 +1,7 @@
+D:\Users\pyrys\source\repos\MultiClient\bin\Debug\MultiClient.exe.config
+D:\Users\pyrys\source\repos\MultiClient\bin\Debug\MultiClient.exe
+D:\Users\pyrys\source\repos\MultiClient\bin\Debug\MultiClient.pdb
+D:\Users\pyrys\source\repos\MultiClient\obj\Debug\MultiClient.csprojAssemblyReference.cache
+D:\Users\pyrys\source\repos\MultiClient\obj\Debug\MultiClient.csproj.CoreCompileInputs.cache
+D:\Users\pyrys\source\repos\MultiClient\obj\Debug\MultiClient.exe
+D:\Users\pyrys\source\repos\MultiClient\obj\Debug\MultiClient.pdb
