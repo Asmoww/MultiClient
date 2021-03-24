@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MultiClient
@@ -169,7 +170,7 @@ namespace MultiClient
 
         private async Task CloseProcessHandles(Process growtopia)
         {
-            Console.WriteLine("Querying system handle information...");
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Querying system handle information...");
 
             int nLength = 0;
             IntPtr handlePointer = IntPtr.Zero;
@@ -199,12 +200,12 @@ namespace MultiClient
                 handlePointer = new IntPtr(infoPointer.ToInt32() + 4);
             }
 
-            Console.WriteLine("Processing" + sysHandleCount + " results...");
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Processing " + sysHandleCount + " results...");
 
             WS.SYSTEM_HANDLE_INFORMATION handleInfoStruct;
 
             List<WS.SYSTEM_HANDLE_INFORMATION> handles = new List<WS.SYSTEM_HANDLE_INFORMATION>();
-            int mutexNum = 0;
+            int handleNum = 0;
             for (long i = 0; i < sysHandleCount; i++)
             {
                 handleInfoStruct = new WS.SYSTEM_HANDLE_INFORMATION();
@@ -228,9 +229,9 @@ namespace MultiClient
 
                 if (handleName != null && handleName.StartsWith(@"\Sessions\") && handleName.EndsWith(@"\BaseNamedObjects\ROBLOX_singletonEvent"))
                 {
-                    mutexNum++;
+                    handleNum++;
                     handles.Add(handleInfoStruct);
-                    Console.WriteLine($"Found mutex [{handleInfoStruct.ProcessID}] [{mutexNum}]");
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Found handle {handleInfoStruct.ProcessID}.");
                 }
                 else
                 {
@@ -238,70 +239,41 @@ namespace MultiClient
                 }
 
             }
-            Console.WriteLine("Closing mutexes...");
-            mutexNum = 0;
-            foreach (WS.SYSTEM_HANDLE_INFORMATION handle in handles)
+            if (handleNum < 1)
             {
-                mutexNum++;
-                CloseMutex(handle, mutexNum);
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] No handles found.");
+                Thread.Sleep(2000);
+                goto retry;
+            }
+            else
+            {
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Closing {handleNum} handle(s)...");
+                handleNum = 0;
+                foreach (WS.SYSTEM_HANDLE_INFORMATION handle in handles)
+                {
+                    handleNum++;
+                    CloseMutex(handle, handleNum);
+                }
             }
         }
 
-        /*private async Task SuspendProcess(Process process)
-        {
-            foreach (ProcessThread pT in process.Threads)
-            {
-                IntPtr pOpenThread = OpenThread(0x0002, false, (uint)pT.Id);
-
-                if (pOpenThread == IntPtr.Zero)
-                {
-                    continue;
-                }
-
-                SuspendThread(pOpenThread);
-                CloseHandle(pOpenThread);
-            }
-            Console.WriteLine($"Suspended process [{process.Id}]");
-        }
-
-        private void ResumeProcess(Process process)
-        {
-            foreach (ProcessThread pT in process.Threads)
-            {
-                IntPtr pOpenThread = OpenThread(0x0002, false, (uint)pT.Id);
-
-                if (pOpenThread == IntPtr.Zero)
-                {
-                    continue;
-                }
-
-                var suspendCount = 0;
-                do
-                {
-                    suspendCount = ResumeThread(pOpenThread);
-                } while (suspendCount > 0);
-
-                CloseHandle(pOpenThread);
-            }
-        }*/
-
-        private async Task CloseMutex(WS.SYSTEM_HANDLE_INFORMATION handle, int mutexNum)
+        private async Task CloseMutex(WS.SYSTEM_HANDLE_INFORMATION handle, int handleNum)
         {
             IntPtr targetHandle;
             if (!DuplicateHandle(Process.GetProcessById(handle.ProcessID).Handle, handle.Handle, IntPtr.Zero, out targetHandle, 0, false, 0x1))
             {
-                Console.WriteLine($"Failed to close mutex [{handle.ProcessID}]: " + Marshal.GetLastWin32Error());
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Failed to close handle {handle.ProcessID}: " + Marshal.GetLastWin32Error());
             }
             else
             {
-                Console.WriteLine($"Closed mutex [{handle.ProcessID}] [{mutexNum}]");
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Closed handle {handle.ProcessID}.");
             }
         }
         private static bool Is64Bits()
         {
             return Marshal.SizeOf(typeof(IntPtr)) == 8 ? true : false;
         }
-        public void OpenRblx()
+        public void DeleteHandle()
         {
             Process[] rblxClient = Process.GetProcessesByName("RobloxPlayerBeta");
             if (rblxClient.Length != 0)
@@ -310,7 +282,7 @@ namespace MultiClient
             }
             else
             {
-                Console.WriteLine("No process found");
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Roblox client isn't running.");
             }
         }
     }
