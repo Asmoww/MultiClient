@@ -168,9 +168,9 @@ namespace MultiClient
             return null;
         }
 
-        private async Task CloseProcessHandles(Process growtopia)
+        private static async Task CloseProcessHandles(Process[] client, bool fulllog, bool firstTime)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Querying system handle information...");
+            if(fulllog) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Querying system handle information...");
 
             int nLength = 0;
             IntPtr handlePointer = IntPtr.Zero;
@@ -200,7 +200,7 @@ namespace MultiClient
                 handlePointer = new IntPtr(infoPointer.ToInt32() + 4);
             }
 
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Processing " + sysHandleCount + " results...");
+            if(fulllog) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Processing " + sysHandleCount + " results...");
 
             WS.SYSTEM_HANDLE_INFORMATION handleInfoStruct;
 
@@ -220,34 +220,37 @@ namespace MultiClient
                     handlePointer = new IntPtr(handlePointer.ToInt64() + Marshal.SizeOf(handleInfoStruct));
                 }
 
-                if (handleInfoStruct.ProcessID != growtopia.Id)
+                foreach (Process p in client)
                 {
-                    continue;
-                }
+                    if (handleInfoStruct.ProcessID != p.Id)
+                    {
+                        continue;
+                    }
 
-                string handleName = ViewHandleName(handleInfoStruct, growtopia);
+                    string handleName = ViewHandleName(handleInfoStruct, p);
 
-                if (handleName != null && handleName.StartsWith(@"\Sessions\") && handleName.EndsWith(@"\BaseNamedObjects\ROBLOX_singletonEvent"))
-                {
-                    handleNum++;
-                    handles.Add(handleInfoStruct);
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Found handle {handleInfoStruct.ProcessID}.");
-                }
-                else
-                {
-                    continue;
+                    if (handleName != null && handleName.StartsWith(@"\Sessions\") && handleName.EndsWith("ROBLOX_singletonEvent"))
+                    {
+                        handleNum++;
+                        handles.Add(handleInfoStruct);
+                        if (fulllog) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Found handle {handleInfoStruct.ProcessID}.");
+                    }
+                    else
+                    {
+                        continue;
+                    }
                 }
 
             }
             if (handleNum < 1)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] No handles found.");
-                Thread.Sleep(2000);
-                goto retry;
+                if (!firstTime) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ERROR: No handle was found.");
+                if (firstTime && fulllog) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] No handles were found.");
+                if (firstTime) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Ready to open a new client.");
             }
             else
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Closing {handleNum} handle(s)...");
+                if (fulllog) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Closing {handleNum} handle(s)...");
                 handleNum = 0;
                 foreach (WS.SYSTEM_HANDLE_INFORMATION handle in handles)
                 {
@@ -255,34 +258,39 @@ namespace MultiClient
                     CloseMutex(handle, handleNum);
                 }
             }
+            GC.Collect();
         }
 
-        private async Task CloseMutex(WS.SYSTEM_HANDLE_INFORMATION handle, int handleNum)
+        private static async Task CloseMutex(WS.SYSTEM_HANDLE_INFORMATION handle, int handleNum)
         {
             IntPtr targetHandle;
             if (!DuplicateHandle(Process.GetProcessById(handle.ProcessID).Handle, handle.Handle, IntPtr.Zero, out targetHandle, 0, false, 0x1))
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Failed to close handle {handle.ProcessID}: " + Marshal.GetLastWin32Error());
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ERROR: Failed to close handle {handle.ProcessID}: " + Marshal.GetLastWin32Error());
             }
             else
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Closed handle {handle.ProcessID}.");
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Ready to open a new client.");
             }
         }
         private static bool Is64Bits()
         {
             return Marshal.SizeOf(typeof(IntPtr)) == 8 ? true : false;
         }
-        public void DeleteHandle()
+        public async void DeleteHandle(bool fulllog, bool firstTime)
         {
-            Process[] rblxClient = Process.GetProcessesByName("RobloxPlayerBeta");
-            if (rblxClient.Length != 0)
+            Process[] rblxClient = Process.GetProcessesByName("RobloxPlayerBeta");     
+            foreach(Process p in rblxClient)
             {
-                CloseProcessHandles(rblxClient[0]);
+                p.PriorityClass = ProcessPriorityClass.Idle;
+            }
+            if (rblxClient.Length > 0)
+            {
+                await CloseProcessHandles(rblxClient, fulllog, firstTime);
             }
             else
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Roblox client isn't running.");
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ERROR: Roblox client isn't running. ");
             }
         }
     }

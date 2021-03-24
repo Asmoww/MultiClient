@@ -10,6 +10,10 @@ using System.Web;
 
 namespace MultiClient
 {
+    class G
+    {
+        public static bool log = false;
+    }
     class Program
     {
         static void Main()
@@ -20,8 +24,24 @@ namespace MultiClient
             string args = Console.ReadLine();
             if (args == "run")
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Starting...");
-                h.DeleteHandle();
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Running manually...");
+                h.DeleteHandle(G.log, true);
+            }
+            else if (args == "log")
+            {
+                G.log = !G.log;
+                if (G.log)
+                {
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Logging enabled.");
+                }
+                else
+                {
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Logging disabled.");
+                }
+            }
+            else if (args == "clean")
+            {
+                GC.Collect();
             }
             else
             {
@@ -34,27 +54,33 @@ namespace MultiClient
         {
             int clientCount = 0;
             Handle h = new Handle();
+            Process[] existingClients = Process.GetProcessesByName("RobloxPlayerBeta");
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {existingClients.Length} Client(s) are open.");
+            clientCount = existingClients.Length;
+            if(existingClients.Length > 0)
+            {
+                h.DeleteHandle(false, true);
+            }
         detect:
-            Thread.Sleep(1000);
             Process[] rblxClients = Process.GetProcessesByName("RobloxPlayerBeta");
-            if(rblxClients.Length > clientCount)
+            if (rblxClients.Length > clientCount)
             {
                 if (rblxClients.Length - clientCount > 1)
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {rblxClients.Length - clientCount} clients were opened. {rblxClients.Length} Client(s) open.");
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {rblxClients.Length - clientCount} clients were opened. {rblxClients.Length} Client(s) are open.");
                 }
                 else
                 {
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] A client was opened. {rblxClients.Length} Client(s) open.");
                 }
                 Thread.Sleep(5000);
-                h.DeleteHandle();
+                h.DeleteHandle(G.log, false);
             }
             else if(rblxClients.Length < clientCount)
             {
                 if (clientCount - rblxClients.Length > 1)
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {rblxClients.Length - clientCount} clients were closed. {rblxClients.Length} Client(s) open.");
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {rblxClients.Length - clientCount} clients were closed. {rblxClients.Length} Client(s) are open.");
                 }
                 else
                 {
@@ -62,6 +88,7 @@ namespace MultiClient
                 }
             }
             clientCount = rblxClients.Length;
+            Thread.Sleep(500);
             goto detect;
         }
     }
