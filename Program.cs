@@ -9,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Windows.Forms;
+using WindowsInput.Native;
+using WindowsInput;
 
 namespace MultiClient
 {
@@ -144,14 +146,14 @@ namespace MultiClient
 
         public async static Task Afk()
         {
-            const uint WM_KEYDOWN = 0x100;
-            const uint WM_KEYUP = 0x0101;
+            InputSimulator sim = new InputSimulator();
+            Thread.Sleep(5000);
         start:
-            Thread.Sleep(2000);
             Process[] rblxClients = Process.GetProcessesByName("RobloxPlayerBeta");
+            Thread.Sleep(1000);
             if (G.afk)
             {
-                foreach(Process p in rblxClients)
+                foreach (Process p in rblxClients)
                 {
                     if (GetForegroundProcess().Id == p.Id)
                     {
@@ -161,18 +163,25 @@ namespace MultiClient
                     {
                         if (G.log) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Sending AFK input to {p.Id}...");
                         IntPtr windowHandle = p.MainWindowHandle;
-                        Thread.Sleep(20);
                         SwitchToThisWindow(windowHandle, true);
                         SetForegroundWindow(windowHandle);
-                        PostMessage(windowHandle, WM_KEYDOWN, (IntPtr)(Keys.Divide), IntPtr.Zero);
-                        Thread.Sleep(20);
-                        PostMessage(windowHandle, WM_KEYUP, (IntPtr)(Keys.Divide), IntPtr.Zero);
-                        Thread.Sleep(20);
+                        /*sim.Keyboard.KeyDown(VirtualKeyCode.SPACE);
+                        sim.Keyboard.Sleep(2000);
+                        sim.Keyboard.KeyUp(VirtualKeyCode.SPACE);*/
+                        Thread.Sleep(4000);
                         ShowWindow(windowHandle, SW_MINIMIZE);
                         Thread.Sleep(20);
                     }
                 }
-            }
+                for (int i = 0; i < 10; i++)
+                {
+                    if (!G.afk)
+                    {
+                        goto start;
+                    }
+                    Thread.Sleep(1000);                   
+                }
+            }       
             goto start;
         }
 
@@ -202,7 +211,10 @@ namespace MultiClient
                         //Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ERROR: Unable to set the title for clients. (Client may be closing?)");
                     }
                 }
-                if (G.log) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Client is probably closing, ignoring.");
+                else
+                {
+                    if (G.log) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Client is probably closing, ignoring.");
+                }
             }
             goto start;
         }

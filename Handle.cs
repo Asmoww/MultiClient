@@ -290,7 +290,7 @@ namespace MultiClient
             }
             else
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ERROR: Roblox client isn't running. ");
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Roblox client isn't running. ");
             }
         }
     }
