@@ -49,6 +49,10 @@ namespace MultiClient
             Task.Run(() => DetectClient());
             Task.Run(() => Afk());
             Task.Run(() => Timer());
+            Console.WriteLine("run - Delete mutex manually");
+            Console.WriteLine("log - Show additional logs/info");
+            Console.WriteLine("afk - Cycle between clients, you need an autoclicker or similar");
+            Console.WriteLine(" ");
         start:
             string args = Console.ReadLine();
             if (args == "run")
@@ -80,10 +84,6 @@ namespace MultiClient
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] AFK mode off.");
                 }
             }
-            else if (args == "clean")
-            {
-                GC.Collect();
-            }
             else
             {
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Invalid command.");
@@ -94,9 +94,18 @@ namespace MultiClient
         public async static Task DetectClient()
         {
             int clientCount = 0;
+            string userName = Environment.UserName;
             Handle h = new Handle();
             Process[] existingClients = Process.GetProcessesByName("RobloxPlayerBeta");
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {existingClients.Length} Client(s) are open.");
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Hello, {userName} :)");
+            if (existingClients.Length == 1)
+            {
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {existingClients.Length} Client is open.");
+            }
+            else
+            {
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {existingClients.Length} Clients are open.");
+            }
             clientCount = existingClients.Length;
             if(existingClients.Length > 0)
             {
@@ -108,11 +117,18 @@ namespace MultiClient
             {
                 if (rblxClients.Length - clientCount > 1)
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {rblxClients.Length - clientCount} clients were opened. {rblxClients.Length} Client(s) are open.");
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {rblxClients.Length - clientCount} clients were opened. {rblxClients.Length} Clients are open.");
                 }
                 else
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] A client was opened. {rblxClients.Length} Client(s) open.");
+                    if (rblxClients.Length == 1)
+                    {
+                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] A client was opened. {rblxClients.Length} Client is open.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] A client was opened. {rblxClients.Length} Clients are open.");
+                    }
                 }
                 Thread.Sleep(5000);
                 h.DeleteHandle(G.log, false);
@@ -121,11 +137,25 @@ namespace MultiClient
             {
                 if (clientCount - rblxClients.Length > 1)
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {clientCount - rblxClients.Length} clients were closed. {rblxClients.Length} Client(s) are open.");
+                    if (rblxClients.Length == 1)
+                    {
+                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {clientCount - rblxClients.Length} Clients were closed. {rblxClients.Length} Client is open.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {clientCount - rblxClients.Length} Clients were closed. {rblxClients.Length} Clients are open.");
+                    }
                 }
                 else
                 {
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] A client was closed. {rblxClients.Length} Client(s) open.");
+                    if (rblxClients.Length == 1)
+                    {
+                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] A client was closed. {rblxClients.Length} Client is open.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] A client was closed. {rblxClients.Length} Clients are open.");
+                    }
                 }
             }
             clientCount = rblxClients.Length;
@@ -194,7 +224,8 @@ namespace MultiClient
                     }
                     catch (Exception)
                     {
-                        if (G.log) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ERROR: Unable to set the title for clients. Client may be closing?");
+                        //if (G.log) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ERROR: Unable to set the title for clients. Client may be closing?");
+                        //useless to log, happens every time a client is opened or closed
                     }
                 }
                 else
