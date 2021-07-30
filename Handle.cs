@@ -160,7 +160,6 @@ namespace MultiClient
                 }
                 finally
                 {
-                    //Console.WriteLine("Accessviolation caught!");
                     Marshal.FreeHGlobal(nameQueryData);
                     CloseHandle(targetHandle);
                 }
@@ -290,7 +289,7 @@ namespace MultiClient
             }
             else
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Roblox client isn't running. ");
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] No running Roblox clients found. ");
             }
         }
     }

@@ -1,16 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Management;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
-using System.Windows.Forms;
-using WindowsInput.Native;
-using WindowsInput;
 
 namespace MultiClient
 {
@@ -22,9 +14,6 @@ namespace MultiClient
     class Program
     {
         private const int SW_MINIMIZE = 6;
-
-        [DllImport("user32.dll")]
-        public static extern IntPtr PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
         [DllImport("user32.dll")]
         public static extern bool SetForegroundWindow(IntPtr hWnd);
@@ -146,7 +135,6 @@ namespace MultiClient
 
         public async static Task Afk()
         {
-            InputSimulator sim = new InputSimulator();
             Thread.Sleep(5000);
         start:
             Process[] rblxClients = Process.GetProcessesByName("RobloxPlayerBeta");
@@ -165,10 +153,8 @@ namespace MultiClient
                         IntPtr windowHandle = p.MainWindowHandle;
                         SwitchToThisWindow(windowHandle, true);
                         SetForegroundWindow(windowHandle);
-                        /*sim.Keyboard.KeyDown(VirtualKeyCode.SPACE);
-                        sim.Keyboard.Sleep(2000);
-                        sim.Keyboard.KeyUp(VirtualKeyCode.SPACE);*/
-                        Thread.Sleep(4000);
+                        //input, maybe in the future if I can find a way
+                        Thread.Sleep(500);
                         ShowWindow(windowHandle, SW_MINIMIZE);
                         Thread.Sleep(20);
                     }
@@ -206,9 +192,9 @@ namespace MultiClient
                             SetWindowText(p.MainWindowHandle, "Roblox - " + windowTime + " seconds");
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        //Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ERROR: Unable to set the title for clients. (Client may be closing?)");
+                        if (G.log) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ERROR: Unable to set the title for clients. Client may be closing?");
                     }
                 }
                 else
