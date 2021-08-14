@@ -49,7 +49,7 @@ namespace MultiClient
             Task.Run(() => DetectClient());
             Task.Run(() => Afk());
             Task.Run(() => Timer());
-            Console.Title = "MultiClient";
+            Console.Title = "MultiClient v1.0";
             Console.WriteLine("run - Delete mutex manually");
             Console.WriteLine("log - Show additional logs/info");
             Console.WriteLine("afk - Cycle between clients, you need an autoclicker or similar");
