@@ -49,6 +49,7 @@ namespace MultiClient
             Task.Run(() => DetectClient());
             Task.Run(() => Afk());
             Task.Run(() => Timer());
+            Console.Client = "MultiClient";
             Console.WriteLine("run - Delete mutex manually");
             Console.WriteLine("log - Show additional logs/info");
             Console.WriteLine("afk - Cycle between clients, you need an autoclicker or similar");
@@ -97,7 +98,7 @@ namespace MultiClient
             string userName = Environment.UserName;
             Handle h = new Handle();
             Process[] existingClients = Process.GetProcessesByName("RobloxPlayerBeta");
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Hello, {userName} :)");
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Hello, user :)");
             if (existingClients.Length == 1)
             {
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {existingClients.Length} Client is open.");
