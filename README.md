@@ -1,7 +1,7 @@
 # MultiClient
 
-Able to open multiple Roblox clients. Will add more features like afk in background.  
-Download: https://github.com/Asmoww/MultiClient/blob/main/bin/Debug/MultiClient.exe  
+Able to open multiple Roblox clients. 
+Download: https://github.com/Asmoww/MultiClient/releases/download/v1.0/MultiClient.exe
 
 "run" Delete mutex manually, probably useless.  
 
